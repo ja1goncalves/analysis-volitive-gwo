@@ -1,0 +1,5 @@
+__pycache__/
+IN/15d/*.json
+IN/30d/*.json
+IN-abs/15d/*.json
+IN-abs/30d/*.json
