@@ -96,7 +96,7 @@ class DixonPriceFunction(ObjectiveFunction): # unimodal function
   def evaluate(self, x):
     sum_ = 0.0
     for i in range(1, len(x)):
-      sum_ += i * (((2 * x[i]) ** 2 - x[i-1] ** 2) ** 2)
+      sum_ += (i+1) * (((2 * x[i]) ** 2 - x[i-1] ** 2) ** 2)
     return ((x[0]-1)**2) + sum_
 
 
@@ -107,7 +107,7 @@ class PermFunction(ObjectiveFunction): # unimodal function
   def evaluate(self, x):
     b = 0.5
     sum_i = 0.0
-    for i in range(0, len(x)):
+    for i in range(1, len(x)+1):
       sum_j = 0.0
       for j in range(1, len(x)+1):
         sum_j += ((j + b) * ((x[j-1]**i) - 1/(j**i))) ** 2
@@ -120,12 +120,10 @@ class QuarticNoiseFunction(ObjectiveFunction): # unimodal function F7
     super(QuarticNoiseFunction, self).__init__('Quartic-Noise', dim, -1.28, 1.28)
 
   def evaluate(self, x):
-    dim = len(x)
-    w = [i for i in range(len(x))]
-    for i in range(0, dim):
-        w[i] = i + 1
-    o = np.sum(w * (x ** 4)) + np.random.uniform(0, 1)
-    return o
+    sum_ = 0.0
+    for i in range(len(x)):
+        sum_ += (i+1) * ((x[i])**4)
+    return sum_ + np.random.uniform(0, 1)
 
 
 class GeneralizedShwefelFunction(ObjectiveFunction): # 2.26 multimodal function F8
@@ -162,8 +160,8 @@ class GriewankFunction(ObjectiveFunction): # multimodal function F11
 
   def evaluate(self, x):
     dim = len(x)
-    w = [i for i in range(len(x))]
-    w = [i + 1 for i in w]
+    w = [i+1 for i in range(len(x))]
+    # w = [i + 1 for i in w]
     o = np.sum(x ** 2) / 4000 - self.prod(np.cos(x / np.sqrt(w))) + 1
     return o
 
