@@ -1,5 +1,6 @@
 import random
 import copy
+from swarmview.view import SwarmView
 import numpy as np
 import matplotlib.pyplot as plt
 from VGWO_WOLF import *
@@ -36,6 +37,8 @@ class VolitivePack(object):
     self.alpha = None
     self.beta = None
     self.delta = None
+    self.best_fit = float('inf')
+    self.worse_fit = float('-inf')
     
     self.analytic_in = analytic_in
     self.i_net = np.zeros((n_iter, pack_size, pack_size))
@@ -44,6 +47,9 @@ class VolitivePack(object):
     self.optimum_fitness_tracking_iter = []
     self.optimum_posit_tracking_iter = []
     self.optimum_fitness_tracking_eval = []
+
+    self.count_expand = 0
+    self.count_retract = 0
   
   def __init_fitness_tracking(self):
     self.optimum_fitness_tracking_iter = []
@@ -53,8 +59,8 @@ class VolitivePack(object):
   def __gen_aromatic_intensity(self, fitness):
     return self.n_iter / fitness
 
-  def __init_wolf(self, pos):
-    wolf = Wolf(self.dim)
+  def __init_wolf(self, pos, idx):
+    wolf = Wolf(self.dim, idx)
     wolf.pos = pos
     wolf.fitness = self.objective_function.evaluate(wolf.pos)
     wolf.aromatic_intensity = self.__gen_aromatic_intensity(wolf.fitness)
@@ -62,10 +68,10 @@ class VolitivePack(object):
     return wolf
 
   def __init_pack(self):
-    self.best_wolf_ever = Wolf(self.dim)
-    self.alpha = Wolf(self.dim)
-    self.beta = Wolf(self.dim)
-    self.delta = Wolf(self.dim)
+    self.best_wolf_ever = Wolf(self.dim, -1)
+    self.alpha = Wolf(self.dim, -2)
+    self.beta = Wolf(self.dim, -3)
+    self.delta = Wolf(self.dim, -4)
     self.pack = []
     self.curr_ai_pack = 0.0
     self.prev_ai_pack = 0.0
@@ -73,16 +79,17 @@ class VolitivePack(object):
     positions = self.space_initializer.sample(self.objective_function, self.pack_size)
 
     for idx in range(self.pack_size):
-      wolf = self.__init_wolf(positions[idx])
+      wolf = self.__init_wolf(positions[idx], idx)
       self.pack.append(wolf)
       self.curr_ai_pack += wolf.aromatic_intensity
     self.prev_ai_pack = self.curr_ai_pack
     self.sniffing()
-    self.update_hierarchy()
+    self.update_hierarchy(iter=0)
 
   def update_steps(self, curr_iter):
     self.a = 2 - curr_iter * (2 / self.n_iter)
     self.curr_step_vol = self.step_vol_init - curr_iter * float(self.step_vol_init - self.step_vol_final) / self.n_iter
+    #self.curr_step_vol = 2 * (self.curr_step_vol - abs(self.step_vol_init - self.step_vol_init) / self.n_iter)
 
   def update_variables(self):
     self.r1 = random.random()
@@ -109,7 +116,7 @@ class VolitivePack(object):
 
     return barycenter
 
-  def update_hierarchy(self, remake=False, alpha=True, beta=True, delta=True):
+  def update_hierarchy(self, iter, remake=False, alpha=True, beta=True, delta=True):
     """
     This function is a copy of the original in github, but I don't if this is
     correct since here we have a volitive moviment and the alpha/beta/delta
@@ -118,14 +125,19 @@ class VolitivePack(object):
     """
     self.max_delta_fitness = 0
     if remake:
-      self.alpha = Wolf(self.dim) if alpha else self.alpha
-      self.beta  = Wolf(self.dim) if beta else self.beta
-      self.delta = Wolf(self.dim) if delta else self.delta
+      self.alpha = Wolf(self.dim, -1) if alpha else self.alpha
+      self.beta  = Wolf(self.dim, -2) if beta else self.beta
+      self.delta = Wolf(self.dim, -3) if delta else self.delta
     
     for wolf in self.pack:
       # wolf.update_bests()
       if wolf.fitness < self.best_wolf_ever.fitness:
         self.best_wolf_ever = copy.deepcopy(wolf)
+        self.best_fit = self.best_wolf_ever.fitness
+        self.best_fit_it = iter
+
+      if wolf.fitness > self.worse_fit:
+        self.worse_fit = wolf.fitness
 
       if wolf.fitness < self.alpha.fitness:
         self.delta = copy.deepcopy(self.beta)
@@ -148,7 +160,7 @@ class VolitivePack(object):
       
       self.curr_ai_pack += wolf.aromatic_intensity
 
-  def collective_movement(self): # GWO Movement
+  def gwo_movement(self): # GWO Movement
     for wolf in self.pack:
       new_pos = np.zeros((self.dim,), dtype=float)
       self.update_variables()
@@ -187,20 +199,35 @@ class VolitivePack(object):
       if wolf.delta_fitness > self.max_delta_fitness:
         self.max_delta_fitness = wolf.delta_fitness
 
-  def collective_volitive_movement(self):
+  def fss_volitive_movement(self):
     # self.total_pack_ai()
     barycenter = self.calculate_barycenter()
     self.barycenter = barycenter
+
     for wolf in self.pack:
       new_pos = np.zeros((self.dim,), dtype=float)
       if self.curr_ai_pack > self.prev_ai_pack:
         self.curr_mult_vol = 1
-        jump = self.curr_mult_vol * self.a
-        new_pos = wolf.pos - ((wolf.pos - barycenter) * (self.curr_step_vol * jump) * np.random.uniform(0, 1, size=self.dim))
+        #jump = self.curr_mult_vol * self.a
+        #new_pos = wolf.pos - ((wolf.pos - barycenter) * (self.curr_step_vol * jump) * np.random.uniform(0, 1, size=self.dim))
+        #new_pos = wolf.pos - ((wolf.pos - barycenter) * (self.curr_step_vol) * np.random.uniform(0, 1, size=self.dim))
+        direction = -1
+        self.count_retract+=1
       else:
-        self.curr_mult_vol += 10
-        jump = self.curr_mult_vol * self.a
-        new_pos = wolf.pos + ((wolf.pos - barycenter) * (self.curr_step_vol * jump) * np.random.uniform(0, 1, size=self.dim))
+        #self.curr_mult_vol += 10
+        #jump = self.curr_mult_vol * self.a
+        #new_pos = wolf.pos + ((wolf.pos - barycenter) * (self.curr_step_vol * jump) * np.random.uniform(0, 1, size=self.dim))
+        direction = +1
+        self.count_expand+=1
+      
+      jump = 1
+      numerator = (wolf.pos - barycenter)
+      denominator = 1# np.linalg.norm(wolf.pos - barycenter) # euclidean distance
+
+      volitive_move = jump * self.curr_step_vol * np.random.uniform(0, 1, size=self.dim) * (numerator/denominator)
+
+      new_pos = wolf.pos + direction * volitive_move 
+
       new_pos[new_pos < self.minf] = self.minf
       new_pos[new_pos > self.maxf] = self.maxf
 
@@ -230,21 +257,34 @@ class VolitivePack(object):
     self.i_net[n_iter] += interaction_in
     # print(n_iter, self.i_net[n_iter].sum())
 
-  def optimize(self):
+  def optimize(self, sv: SwarmView):
     self.__init_fitness_tracking()
     self.__init_pack()
 
+    
     for i in range(self.n_iter):
       self.update_steps(i)
-      self.collective_movement()
+      self.gwo_movement()
+      
+      array = [wolf.pos for wolf in self.pack]
+      sv.plot_view(positions= np.array(array), title=f"{self.best_fit} - IT=({self.best_fit_it}) W={self.curr_ai_pack}", iteration=f"{i}_gwo")
+
       self.sniffing()
-      self.update_hierarchy(True) # It's can be use lonely without the second (remake True is a little bit bad to Sphere and Schwefel, but good to Multimodal)
+      self.update_hierarchy(remake=True, iter=i) # It's can be use lonely without the second (remake True is a little bit bad to Sphere and Schwefel, but good to Multimodal)
       #if self.analytic_in:
       #  self.get_analytic_in(i, euclidean=True, volitive=False)
-      self.collective_volitive_movement()
+      self.fss_volitive_movement()
+      
+      array = [wolf.pos for wolf in self.pack]
+      sv.plot_view(positions= np.array(array), title=f"{self.best_fit} - IT=({self.best_fit_it}) W={self.curr_ai_pack}",iteration=f"{i}_fss")
+
       self.sniffing()
-      self.update_hierarchy() # remake True is good only to Multimodal
+      self.update_hierarchy(iter=i) # remake True is good only to Multimodal
       #if self.analytic_in:
       #  self.get_analytic_in(i, euclidean=False, volitive=True)
+
       self.optimum_fitness_tracking_iter.append(self.alpha.fitness)
       self.optimum_posit_tracking_iter.append(self.alpha.pos.tolist())
+    
+    print("expand ", self.count_expand)
+    print("retract ", self.count_retract)

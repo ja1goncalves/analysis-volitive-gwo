@@ -2,7 +2,7 @@ import math
 import numpy as np
 
 class Wolf(object):
-  def __init__(self, dim):
+  def __init__(self, dim, idx):
     self.pos = np.zeros(dim)
     self.fitness = np.inf
     self.aromatic_intensity = 0
@@ -11,6 +11,7 @@ class Wolf(object):
     self.best_score = 0
     self.best_pos = np.zeros(dim)
     self.last_pos = np.zeros(dim)
+    self.idx = idx
 
   def update_bests(self, score=None, pos=None):
     score = self.fitness if score is None else score
