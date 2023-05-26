@@ -13,7 +13,7 @@ def create_dir(path):
     os.mkdir(directory)
 
 def main():
-  for dimension in [15]:#, 30, 50, 100]:
+  for dimension in [30]:#, 30, 50, 100]:
     print (f"starting GWO ({dimension})")
     search_space_initializer = UniformSSInitializer()
     result_path = os.path.dirname(os.path.abspath('Algoritms')) + os.sep + "Results" + os.sep + f"{dimension}d" + os.sep
@@ -23,7 +23,8 @@ def main():
 
     unimodal_funcs = [SphereFunction, RotatedHyperEllipsoidFunction, RosenbrockFunction, DixonPriceFunction, QuarticNoiseFunction]
     multimodal_funcs =  [GeneralizedShwefelFunction, RastriginFunction, AckleyFunction, GriewankFunction, LeviFunction]
-    regular_functions = unimodal_funcs + multimodal_funcs
+    regular_functions = multimodal_funcs + unimodal_funcs 
+    # regular_functions = [SphereFunction]
 
     cec_functions = []
 
@@ -46,7 +47,7 @@ def main():
             simulations.append(best_fit)
 
             print(f"{func.function_name}\t t={end - start}\t min={best_fit}")    
-        print(f'mean={np.mean(simulations)}\t std={np.std(simulations)}\n')  
+        print(f'\t\tmean={np.mean(simulations)}\t std={np.std(simulations)}\n')  
 
     f_handle_csv.close()
 
@@ -54,6 +55,6 @@ def run_experiments(n_iter, pack_size, objective_function, search_space_initiali
   opt1 = Pack(objective_function=objective_function, space_initializer=search_space_initializer,
               n_iter=n_iter, pack_size=pack_size)
   opt1.optimize()
-  return opt1.optimum_score_tracking_iter, opt1.optimum_score_tracking_eval
+  return opt1.optimum_fitness_tracking_iter, opt1.optimum_fitness_tracking_eval
 
 main()

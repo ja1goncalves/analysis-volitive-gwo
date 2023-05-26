@@ -89,7 +89,9 @@ class VolitivePack(object):
         self.update_hierarchy(iter=0)
 
     def update_steps(self, curr_iter):
-        self.a = 2 - curr_iter * (2 / self.n_iter)
+        #self.a = 2 - curr_iter * (2 / self.n_iter)
+        self.a = 2 - (curr_iter**2) * (2 / (self.n_iter**2))
+
         # - curr_iter * float(self.step_vol_init - self.step_vol_final) / self.n_iter
         # self.curr_step_vol = self.step_vol_init
         # self.curr_step_vol = 2 * (self.curr_step_vol - abs(self.step_vol_init - self.step_vol_init) / self.n_iter)
@@ -219,16 +221,17 @@ class VolitivePack(object):
         barycenter = self.calculate_barycenter()
         self.barycenter = barycenter
 
+        if self.curr_ai_pack > self.prev_ai_pack:
+            self.curr_mult_vol = 1
+            direction = -1
+            self.count_retract += 1
+            #break
+        else:
+            direction = +1
+            self.count_expand += 1
+            
         for wolf in self.pack:
             new_pos = np.zeros((self.dim,), dtype=float)
-            if self.curr_ai_pack > self.prev_ai_pack:
-                self.curr_mult_vol = 1
-                direction = -1
-                self.count_retract += 1
-                #break
-            else:
-                direction = +1
-                self.count_expand += 1
 
             jump = 1
             numerator = (wolf.pos - barycenter)

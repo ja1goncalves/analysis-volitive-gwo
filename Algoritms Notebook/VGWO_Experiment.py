@@ -17,25 +17,30 @@ def create_dir(path):
 def main():
 
   v = 0.01
-  step_volitive_init = v * 10
-  step_volitive_final =  v
+
+  #step_volitive_init =  0.1
+  #step_volitive_final = 0.0001
+
+  step_volitive_init =  v * 10
+  step_volitive_final = v
+  
 
   print (f"starting VGWO ({step_volitive_init}-{step_volitive_final} step volitive)")
 
   search_space_initializer = UniformSSInitializer()
   result_path = os.path.dirname(os.path.abspath('Algorithms')) + os.sep + "Results" + os.sep + "VGWO-vol" + os.sep
-  num_exec = 2
-  pack_size = 10
+  num_exec = 5
+  pack_size = 30
   num_iterations = 500
-  dimension = 2
+  dimension = 30
   min_ai = 0.1
-
   
   unimodal_funcs = [SphereFunction, RotatedHyperEllipsoidFunction, RosenbrockFunction, DixonPriceFunction, QuarticNoiseFunction]
   multimodal_funcs =  [GeneralizedShwefelFunction, RastriginFunction, AckleyFunction, GriewankFunction, LeviFunction]
   regular_functions = unimodal_funcs + multimodal_funcs
 
-  regular_functions = [RastriginFunction]
+  regular_functions = multimodal_funcs + unimodal_funcs
+  regular_functions = [SphereFunction]
   cec_functions = []
 
   create_dir(result_path)
@@ -50,7 +55,9 @@ def main():
       func = benchmark_func(dimension)
       start = time.time()
       
-      swarm_view = SwarmView(simuid = simulation_id, xmin = -5.12, xmax = 5.12, is_3d = False, function = lambda x, y: x ** 2 - 10 * np.cos(2 * math.pi * x) + y ** 2 - 10 * np.cos(2 * math.pi * y) )
+      swarm_view = SwarmView(simuid = f"{benchmark_func.__name__}_{simulation_id}", xmin = func.minf, xmax = func.maxf, is_3d = False, 
+                    function = lambda x, y: x ** 2 - 10 * np.cos(2 * math.pi * x) + y ** 2 - 10 * np.cos(2 * math.pi * y), 
+                    enable = False )
       
       #lambda x , y: x**2 + y**2
 
@@ -66,7 +73,7 @@ def main():
 
       swarm_view.create_gif()
 
-      print(f"{func.function_name}\t t={end - start}\t fit={best_fit}")    
+      print(f"{func.function_name}\t fit={best_fit}\t t={end - start}")    
     print(f'\t\tmean={np.mean(simulations)}\t std={np.std(simulations)}\n')  
 
   f_handle_csv.close()
