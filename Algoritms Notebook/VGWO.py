@@ -9,7 +9,7 @@ plt.rcParams["figure.figsize"] = (13, 8)
 
 
 class VolitivePack(object):
-    def __init__(self, objective_function, space_initializer, n_iter, pack_size,
+    def __init__(self, objective_function, space_initializer, n_iter, max_evaluations, pack_size,
                  vol_init=0.01, vol_final=0.001, min_ai=0.4, analytic_in=False):
         self.objective_function = objective_function  # função de avalição de custo
         self.space_initializer = space_initializer  # posições iniciais dos peixes
@@ -18,7 +18,7 @@ class VolitivePack(object):
         self.minf = objective_function.minf  # limite minimo da função
         self.maxf = objective_function.maxf  # limite máximo da função
         self.n_iter = n_iter
-
+        self.max_evaluations = max_evaluations
         self.pack_size = pack_size  # quantidade de peixes
         self.min_ai = min_ai
         self.prev_ai_pack = 0.0
@@ -279,8 +279,8 @@ class VolitivePack(object):
     def optimize(self, sv: SwarmView):
         self.__init_fitness_tracking()
         self.__init_pack()
-
-        for curr_iter in range(self.n_iter):
+        curr_iter = 0
+        while self.objective_function.evaluations < self.max_evaluations:
             self.update_steps(curr_iter)           
             self.gwo_movement()
 
@@ -310,5 +310,6 @@ class VolitivePack(object):
 
             self.optimum_fitness_tracking_iter.append(self.alpha.fitness)
             self.optimum_posit_tracking_iter.append(self.alpha.pos.tolist())
-
+            curr_iter+=1
         # print(f"expand {self.count_expand} / retract {self.count_retract}\n")
+        #print(f"Final Iteration = {curr_iter}")

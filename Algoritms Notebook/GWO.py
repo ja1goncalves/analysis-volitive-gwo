@@ -55,7 +55,7 @@ class Delta(Wolf):
 
 
 class Pack(object):
-  def __init__(self, objective_function, space_initializer, n_iter, pack_size, analytic_in=False):
+  def __init__(self, objective_function, space_initializer, n_iter, max_evaluations, pack_size, analytic_in=False):
     self.objective_function = objective_function # função de avalição de custo
     self.space_initializer = space_initializer # posições iniciais dos peixes
 
@@ -63,7 +63,7 @@ class Pack(object):
     self.minf = objective_function.minf # limite minimo da função
     self.maxf = objective_function.maxf # limite máximo da função
     self.n_iter = n_iter
-
+    self.max_evaluations = max_evaluations
     self.pack_size = pack_size  # quantidade de peixes
 
     self.a = 2
@@ -181,10 +181,13 @@ class Pack(object):
     self.__init_fitness_tracking()
     self.__init_pack()
 
-    for i in range(self.n_iter):
+    i = 0
+    while self.objective_function.evaluations < self.max_evaluations:
       self.update_a(i)
       self.collective_movement()
       self.update_hierarchy()
       self.optimum_fitness_tracking_iter.append(self.best_fit)
       if self.analytic_in:
         self.get_analytic_in()
+      i+=1
+    print(f"Final Iter={i}")

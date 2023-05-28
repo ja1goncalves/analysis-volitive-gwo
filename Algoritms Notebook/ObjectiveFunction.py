@@ -1,10 +1,19 @@
 import math
 import numpy as np
+from functools import wraps
 
 
 # This code was based on in the following references:
 # [1] "Defining a Standard for Particle Swarm Optimization" published in 2007 by Bratton and Kennedy
 
+def counter_eval(func):
+  @wraps(func)
+  def wrapper(self, *args, **kwargs):
+    self.evaluations += 1
+    return func(self, *args, **kwargs)
+  return wrapper
+
+  
 
 class ObjectiveFunction(object):
   def __init__(self, name, dim, minf, maxf):
@@ -12,6 +21,7 @@ class ObjectiveFunction(object):
     self.dim = dim
     self.minf = minf
     self.maxf = maxf
+    self.evaluations = 0
 
   def evaluate(self, x):
     raise NotImplementedError("Function was not implemented!")
@@ -30,8 +40,9 @@ class ObjectiveFunction(object):
 
 class SphereFunction(ObjectiveFunction): # unimodal function F1
   def __init__(self, dim):
-    super(SphereFunction, self).__init__('Sphere', dim, -5.12, 5.12)
+    super(SphereFunction, self).__init__('Sphere', dim, -100, 100)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     return np.sum(x ** 2)
@@ -41,6 +52,7 @@ class RotatedHyperEllipsoidFunction(ObjectiveFunction): # unimodal function
   def __init__(self, dim):
     super(RotatedHyperEllipsoidFunction, self).__init__('RotatedHyperEllipsoid', dim, -65.536, 65.536)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     return sum([np.sum(x[0:i]**2) for i in range(len(x))])
@@ -57,6 +69,7 @@ class F2(ObjectiveFunction): # unimodal function
   def __init__(self, dim):
     super(F2, self).__init__('F2', dim, -10.0, 10.0)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     return sum(abs(x)) + self.prod(abs(x))
@@ -66,6 +79,7 @@ class F3(ObjectiveFunction): # unimodal function
   def __init__(self, dim):
     super(F3, self).__init__('F3', dim, -100.0, 100.0)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     dim = len(x) + 1
@@ -79,6 +93,7 @@ class F4(ObjectiveFunction): # unimodal function
   def __init__(self, dim):
     super(F4, self).__init__('F4', dim, -100.0, 100.0)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     return max(abs(x))
@@ -86,8 +101,9 @@ class F4(ObjectiveFunction): # unimodal function
 
 class RosenbrockFunction(ObjectiveFunction): # unimodal function F5
   def __init__(self, dim):
-    super(RosenbrockFunction, self).__init__('Rosenbrock', dim, -5, 10)
+    super(RosenbrockFunction, self).__init__('Rosenbrock', dim, -5, 5)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     dim = len(x)
@@ -99,6 +115,7 @@ class DixonPriceFunction(ObjectiveFunction): # unimodal function
   def __init__(self, dim):
     super(DixonPriceFunction, self).__init__('Dixon-Price', dim, -10.0, 10.0)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     sum_ = 0.0
@@ -111,6 +128,7 @@ class PermFunction(ObjectiveFunction): # unimodal function
   def __init__(self, dim):
     super(PermFunction, self).__init__('Perm', dim, -dim, dim)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     b = 0.5
@@ -127,6 +145,7 @@ class QuarticNoiseFunction(ObjectiveFunction): # unimodal function F7
   def __init__(self, dim):
     super(QuarticNoiseFunction, self).__init__('Quartic-Noise', dim, -1.28, 1.28)
 
+  @counter_eval
   def evaluate(self, x):
     sum_ = 0.0
     for i in range(len(x)):
@@ -138,6 +157,7 @@ class GeneralizedShwefelFunction(ObjectiveFunction): # 2.26 multimodal function 
   def __init__(self, dim):
     super(GeneralizedShwefelFunction, self).__init__('Generalized-Shwefel', dim, -500.0, 500.0)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     f_x = np.sum(x * (np.sin(np.sqrt(np.fabs(x)))))
@@ -148,6 +168,7 @@ class RastriginFunction(ObjectiveFunction): # multimodal function F9
   def __init__(self, dim):
     super(RastriginFunction, self).__init__('Rastrigin', dim, -5.12, 5.12)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     f_x = [xi ** 2 - 10 * math.cos(2 * math.pi * xi) for xi in x]
@@ -158,6 +179,7 @@ class AckleyFunction(ObjectiveFunction): # multimodal function F10
   def __init__(self, dim):
     super(AckleyFunction, self).__init__('Ackley', dim, -32.768, 32.768)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     exp_1 = -0.2 * np.sqrt((1.0 / len(x)) * np.sum(x ** 2))
@@ -169,6 +191,7 @@ class GriewankFunction(ObjectiveFunction): # multimodal function F11
   def __init__(self, dim):
     super(GriewankFunction, self).__init__('Griewank', dim, -600.0, 600.0)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     dim = len(x)
@@ -182,6 +205,7 @@ class LeviFunction(ObjectiveFunction): # multimodal function F12
   def __init__(self, dim):
     super(LeviFunction, self).__init__('Levi', dim, -10, 10)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     dim = len(x)
@@ -200,6 +224,7 @@ class Levi13Function(ObjectiveFunction): # multimodal function F13
   def __init__(self, dim):
     super(Levi13Function, self).__init__('Levi-13', dim, -50, 50)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     if x.ndim==1:
@@ -220,6 +245,7 @@ class MichalewiczFunction(ObjectiveFunction): # unimodal function F14
   def __init__(self, dim):
     super(MichalewiczFunction, self).__init__('Michalewicz', dim, 0, math.pi)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     m = 10
@@ -233,6 +259,7 @@ class VicentFunction(ObjectiveFunction): # multimodal function
   def __init__(self, dim):
     super(VicentFunction, self).__init__('Vicent', dim, 0.25, 10)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     dim = len(x)
@@ -244,6 +271,7 @@ class ModifiedRastriginFunction(ObjectiveFunction): # multimodal function
   def __init__(self, dim):
     super(ModifiedRastriginFunction, self).__init__('Modified Rastrigin', dim, -5.12, 5.12)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     f_x = [10 + (9 * math.cos(2 * math.pi * (1 if i in [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 15] else (2 if i in [4, 8] else (3 if i == 12 else (4 if i == 16 else 1))) ) * xi)) for i, xi in enumerate(x)]
@@ -254,6 +282,7 @@ class SchwefelFunction(ObjectiveFunction):
   def __init__(self, dim):
     super(SchwefelFunction, self).__init__('Schwefel', dim, -30.0, 30.0)
 
+  @counter_eval
   def evaluate(self, x):
     #x = np.fabs(x)
     sum_ = 0.0
