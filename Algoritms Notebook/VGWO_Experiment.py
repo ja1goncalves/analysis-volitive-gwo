@@ -55,7 +55,8 @@ def main():
 
   for benchmark_func in regular_functions:
     simulations = []
-    bf_dict = {}
+    bf_iter = {}
+    bf_eval = {}
     for simulation_id in range(num_exec):
       func = benchmark_func(dimension)
       start = time.time()
@@ -75,7 +76,8 @@ def main():
       writer_csv.writerow(row_csv)
       best_fit = min(fit_convergence)
       
-      bf_dict[f'convergence_simulation_{simulation_id}'] = fit_convergence
+      bf_iter[f'convergence_simulation_{simulation_id}'] = fit_convergence
+      bf_eval[f'eval_simulation_{simulation_id}'] = func.best_evaluation_history
       simulations.append(best_fit)
 
       swarm_view.create_gif()
@@ -83,8 +85,12 @@ def main():
       print(f"{func.function_name}\t fit={best_fit}\t t={end - start}")    
     print(f'\t\tmean={np.mean(simulations)}\t std={np.std(simulations)}\n')  
 
-    df_bf = pd.DataFrame(bf_dict)
-    df_bf.to_csv(f"results/{name_file}_{func.function_name}_convergence.csv")
+    df_iter = pd.DataFrame(bf_iter)
+    df_iter.to_csv(f"results/{name_file}_{func.function_name}_convergence.csv")
+
+    df_be = pd.DataFrame(bf_eval)
+    df_be.to_csv(f"results/{name_file}_{func.function_name}_evaluations.csv")
+
   f_handle_csv.close()
 
 
