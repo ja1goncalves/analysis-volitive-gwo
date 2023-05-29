@@ -1,6 +1,9 @@
 venv
 *.pyc
-
+*.txt
+*.csv
+*tmp/
+*.jpg
 __pycache__/
 IN/15d/*.json
 IN/30d/*.json

@@ -39,7 +39,8 @@ def main():
 
   for benchmark_func in regular_functions:
     simulations = []
-    bf_dict = {}
+    bf_iter = {}
+    bf_eval = {}
     for simulation_id in range(num_exec):
         func = benchmark_func(dimension)
         start = time.time()
@@ -49,11 +50,18 @@ def main():
         writer_csv.writerow(row_csv)
         best_fit = min(fit_convergence)
         simulations.append(best_fit)
-        bf_dict[f'convergence_simulation_{simulation_id}'] = fit_convergence
+        bf_iter[f'convergence_simulation_{simulation_id}'] = fit_convergence
+        bf_eval[f'eval_simulation_{simulation_id}'] = func.best_evaluation_history
+
         print(f"{func.function_name}\t t={end - start}\t min={best_fit}")    
     print(f'\t\tmean={np.mean(simulations)}\t std={np.std(simulations)}\n')  
-    df_bf = pd.DataFrame(bf_dict)
-    df_bf.to_csv(f"results/{name_file}_{func.function_name}_convergence.csv")
+    
+    df_iter = pd.DataFrame(bf_iter)
+    df_iter.to_csv(f"results/{name_file}_{func.function_name}_convergence.csv")
+    
+    df_be = pd.DataFrame(bf_eval)
+    df_be.to_csv(f"results/{name_file}_{func.function_name}_evaluations.csv")
+
   f_handle_csv.close()
 
 def run_experiments(n_iter, max_evaluations,  pack_size, objective_function, search_space_initializer):
