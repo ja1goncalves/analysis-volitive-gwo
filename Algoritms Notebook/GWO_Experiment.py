@@ -14,11 +14,11 @@ def create_dir(path):
     os.mkdir(directory)
 
 def main():
-  dimension = 30
+  dimension = 15
   print (f"starting GWO ({dimension})")
   search_space_initializer = UniformSSInitializer()
   result_path = os.path.dirname(os.path.abspath('Algoritms')) + os.sep + "Results" + os.sep + f"{dimension}d" + os.sep
-  num_exec = 20
+  num_exec = 30
   pack_size = 30
   num_iterations = 1000
 

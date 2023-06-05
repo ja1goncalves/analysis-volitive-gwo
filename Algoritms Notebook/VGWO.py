@@ -91,7 +91,7 @@ class VolitivePack(object):
     def update_steps(self, curr_iter):
         #self.a = 2 - curr_iter * (2 / self.n_iter)
         self.a = 2 - (curr_iter**2) * (2 / (self.n_iter**2))
-
+        # Modified Grey Wolf Optimizer for Global Engineering Optimization
         # - curr_iter * float(self.step_vol_init - self.step_vol_final) / self.n_iter
         # self.curr_step_vol = self.step_vol_init
         # self.curr_step_vol = 2 * (self.curr_step_vol - abs(self.step_vol_init - self.step_vol_init) / self.n_iter)

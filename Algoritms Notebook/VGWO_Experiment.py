@@ -1,5 +1,4 @@
 import os
-
 from swarmview.view import SwarmView
 from ObjectiveFunction import *
 from SearchSpaceInitializer import UniformSSInitializer, OneQuarterDimWiseSSInitializer
@@ -17,81 +16,83 @@ def create_dir(path):
 
 def main():
 
-  v = 0.01
-
-  #step_volitive_init =  0.1
-  #step_volitive_final = 0.0001
-
-  step_volitive_init =  v * 10
-  step_volitive_final = v
+  steps_init = [0.1, 0.01, 0.001]
   
+  for step in steps_init:
+    v = 0.01
 
-  print (f"starting VGWO ({step_volitive_init}-{step_volitive_final} step volitive)")
+    #step_volitive_init =  0.1
+    #step_volitive_final = 0.0001
 
-  search_space_initializer = UniformSSInitializer()
-  result_path = os.path.dirname(os.path.abspath('Algorithms')) + os.sep + "Results" + os.sep + "VGWO-vol" + os.sep
-  num_exec = 20
-  pack_size = 30
-  num_iterations = 1000
-  dimension = 30
-  min_ai = 0.1
-  max_evaluations = (pack_size * num_iterations) + pack_size
-  
-  unimodal_funcs = [SphereFunction, RotatedHyperEllipsoidFunction, RosenbrockFunction, DixonPriceFunction, QuarticNoiseFunction]
-  multimodal_funcs =  [GeneralizedShwefelFunction, RastriginFunction, AckleyFunction, GriewankFunction, LeviFunction]
-  regular_functions = unimodal_funcs + multimodal_funcs
+    step_volitive_init =  step
+    step_volitive_final = step/10.
+    
+    print (f"starting VGWO ({step_volitive_init}-{step_volitive_final} step volitive)")
 
-  regular_functions = multimodal_funcs + unimodal_funcs
-  #regular_functions = [SphereFunction]
-  cec_functions = []
+    search_space_initializer = UniformSSInitializer()
+    result_path = os.path.dirname(os.path.abspath('Algorithms')) + os.sep + "Results" + os.sep + "VGWO-vol" + os.sep
+    num_exec = 30
+    pack_size = 30
+    num_iterations = 500
+    dimension = 15
+    min_ai = 1
+    max_evaluations = (pack_size * 2 * num_iterations) + pack_size
+    
+    unimodal_funcs = [SphereFunction, RotatedHyperEllipsoidFunction, RosenbrockFunction, DixonPriceFunction, QuarticNoiseFunction]
+    multimodal_funcs =  [GeneralizedShwefelFunction, RastriginFunction, AckleyFunction, GriewankFunction, LeviFunction]
+    regular_functions = unimodal_funcs + multimodal_funcs
 
-  name_file = f'VGWO_dim_{dimension}_agents_{pack_size}_iter_{num_iterations}_eval_{max_evaluations}'
+    regular_functions = multimodal_funcs + unimodal_funcs
+    #regular_functions = [SphereFunction]
+    cec_functions = []
 
-  create_dir(result_path)
-  f_handle_csv = open(result_path + f"/{step_volitive_init}-vol.csv", 'w+')
-  writer_csv = csv.writer(f_handle_csv, delimiter=",")
-  header = ['step_vol', 'func', 'exec_time'] + [f"run{str(i+1)}" for i in range(num_iterations)]
-  writer_csv.writerow(header)
+    name_file = f'VGWO_dim_{dimension}_agents_{pack_size}_iter_{num_iterations * 2}_eval_{max_evaluations}_step_{str(step_volitive_init).replace(".", "_")}'
 
-  for benchmark_func in regular_functions:
-    simulations = []
-    bf_iter = {}
-    bf_eval = {}
-    for simulation_id in range(num_exec):
-      func = benchmark_func(dimension)
-      start = time.time()
-      
-      swarm_view = SwarmView(simuid = f"{benchmark_func.__name__}_{simulation_id}", xmin = func.minf, xmax = func.maxf, is_3d = False, 
-                    function = lambda x, y: x ** 2 - 10 * np.cos(2 * math.pi * x) + y ** 2 - 10 * np.cos(2 * math.pi * y), 
-                    enable = False )
-      
-      #lambda x , y: x**2 + y**2
+    create_dir(result_path)
+    f_handle_csv = open(result_path + f"/{step_volitive_init}-vol.csv", 'w+')
+    writer_csv = csv.writer(f_handle_csv, delimiter=",")
+    header = ['step_vol', 'func', 'exec_time'] + [f"run{str(i+1)}" for i in range(num_iterations)]
+    writer_csv.writerow(header)
 
-      fit_convergence, bests_eval = run_experiments(num_iterations, max_evaluations, pack_size, func,
-                                              search_space_initializer,
-                                              step_volitive_init,
-                                              step_volitive_final, min_ai, swarm_view)
-      end = time.time()
-      row_csv = [step_volitive_init, func.function_name, (end - start)] + [b for b in fit_convergence[:num_iterations]]
-      writer_csv.writerow(row_csv)
-      best_fit = min(fit_convergence)
-      
-      bf_iter[f'convergence_simulation_{simulation_id}'] = fit_convergence
-      bf_eval[f'eval_simulation_{simulation_id}'] = func.best_evaluation_history
-      simulations.append(best_fit)
+    for benchmark_func in regular_functions:
+      simulations = []
+      bf_iter = {}
+      bf_eval = {}
+      for simulation_id in range(num_exec):
+        func = benchmark_func(dimension)
+        start = time.time()
+        
+        swarm_view = SwarmView(simuid = f"{benchmark_func.__name__}_{simulation_id}", xmin = func.minf, xmax = func.maxf, is_3d = False, 
+                      function = lambda x, y: x ** 2 - 10 * np.cos(2 * math.pi * x) + y ** 2 - 10 * np.cos(2 * math.pi * y), 
+                      enable = False )
+        
+        #lambda x , y: x**2 + y**2
 
-      swarm_view.create_gif()
+        fit_convergence, bests_eval = run_experiments(num_iterations, max_evaluations, pack_size, func,
+                                                search_space_initializer,
+                                                step_volitive_init,
+                                                step_volitive_final, min_ai, swarm_view)
+        end = time.time()
+        row_csv = [step_volitive_init, func.function_name, (end - start)] + [b for b in fit_convergence[:num_iterations]]
+        writer_csv.writerow(row_csv)
+        best_fit = min(fit_convergence)
+        
+        bf_iter[f'convergence_simulation_{simulation_id}'] = fit_convergence
+        bf_eval[f'eval_simulation_{simulation_id}'] = func.best_evaluation_history
+        simulations.append(best_fit)
 
-      print(f"{func.function_name}\t fit={best_fit}\t t={end - start}")    
-    print(f'\t\tmean={np.mean(simulations)}\t std={np.std(simulations)}\n')  
+        swarm_view.create_gif()
 
-    df_iter = pd.DataFrame(bf_iter)
-    df_iter.to_csv(f"results/{name_file}_{func.function_name}_convergence.csv")
+        print(f"{func.function_name}\t fit={best_fit}\t t={end - start}")    
+      print(f'\t\tmean={np.mean(simulations)}\t std={np.std(simulations)}\n')  
 
-    df_be = pd.DataFrame(bf_eval)
-    df_be.to_csv(f"results/{name_file}_{func.function_name}_evaluations.csv")
+      df_iter = pd.DataFrame(bf_iter)
+      df_iter.to_csv(f"results/{name_file}_{func.function_name}_convergence.csv")
 
-  f_handle_csv.close()
+      df_be = pd.DataFrame(bf_eval)
+      df_be.to_csv(f"results/{name_file}_{func.function_name}_evaluations.csv")
+
+    f_handle_csv.close()
 
 
 def run_experiments(n_iter, max_evaluations, pack_size, objective_function,

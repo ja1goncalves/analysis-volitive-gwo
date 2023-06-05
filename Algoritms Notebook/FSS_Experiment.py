@@ -32,12 +32,12 @@ def run_experiments(n_iter, max_evaluations, school_size, num_runs, objective_fu
     return opt1.optimum_cost_tracking_iter, opt1.optimum_cost_tracking_eval
 
 def main():
-    dimension = 30
+    dimension = 15
     print (f"starting FSS ({dimension})")
     search_space_initializer = UniformSSInitializer()
     file_path = os.path.dirname(os.path.abspath('Algoritms')) + os.sep + "Executions" + os.sep + f"{dimension}d" + os.sep
     result_path = os.path.dirname(os.path.abspath('Algoritms')) + os.sep + "Results" + os.sep + f"{dimension}d" + os.sep
-    num_exec = 20
+    num_exec = 30
     school_size = 30
     num_iterations = 1000
     step_individual_init = 0.1

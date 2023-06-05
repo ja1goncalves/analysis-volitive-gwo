@@ -6,8 +6,7 @@ from SearchSpaceInitializer import UniformSSInitializer
 from ObjectiveFunction import *
 import pandas as pd 
 
-def main(topology):
-    dimension = 30
+def main(topology, dimension):    
     print (f"starting PSO ({dimension}) - {topology}")
     search_space_initializer = UniformSSInitializer()
     result_path = os.path.dirname(os.path.abspath('Algoritms')) + os.sep + "Results" + os.sep + f"{dimension}d" + os.sep
@@ -72,10 +71,15 @@ def main(topology):
 def run_experiments(n_iter, max_evaluations, part_size,  objective_function, search_space_initializer, topology):
     opt1 = PSO(objective_function=objective_function, space_initializer=search_space_initializer,
                 n_iter=n_iter, max_evaluations = max_evaluations, part_size=part_size, inertia=0.73, cognitive=2.05,
-                social=2.05, vel_max=10, clerck=True, topology = topology)
+                social=2.05, vel_max=10, clerck=True, topology = topology, auto_coef=True)
     opt1.optimize()
     return opt1.optimum_fitness_tracking_iter, opt1.optimum_fitness_tracking_eval
 
 if __name__ == '__main__':
-    main(topology='GBEST')
-    main(topology='LBEST')
+    
+    DIMENSIONS = [15, 30, 50]
+
+    for dim in DIMENSIONS:
+
+        main(topology='GBEST', dimension=dim)
+        main(topology='LBEST', dimension=dim)
