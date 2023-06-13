@@ -42,8 +42,8 @@ def main():
     num_iterations = 1000
     step_individual_init = 0.1
     step_individual_final = 0.0001
-    step_volitive_init = 0.01
-    step_volitive_final = 0.001
+    step_volitive_init = 0.1
+    step_volitive_final = 0.01
     min_w = 1
     w_scale = num_iterations / 2.0
     max_evaluations = (school_size * num_iterations) + school_size

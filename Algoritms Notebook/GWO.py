@@ -55,7 +55,7 @@ class Delta(Wolf):
 
 
 class Pack(object):
-  def __init__(self, objective_function, space_initializer, n_iter, max_evaluations, pack_size, analytic_in=False):
+  def __init__(self, objective_function, space_initializer, n_iter, max_evaluations, pack_size, enhanced = False, analytic_in=False):
     self.objective_function = objective_function # função de avalição de custo
     self.space_initializer = space_initializer # posições iniciais dos peixes
 
@@ -65,7 +65,7 @@ class Pack(object):
     self.n_iter = n_iter
     self.max_evaluations = max_evaluations
     self.pack_size = pack_size  # quantidade de peixes
-
+    self.enhanced = enhanced
     self.a = 2
     self.r1 = np.random.uniform(size=self.dim)
     self.r2 = np.random.uniform(size=self.dim)
@@ -112,7 +112,10 @@ class Pack(object):
     self.optimum_fitness_tracking_iter.append(self.alpha.fitness)
   
   def update_a(self, curr_iter):
-    self.a = 2 - curr_iter * (2 / self.n_iter)
+    if not self.enhanced:
+      self.a = 2 - curr_iter * (2 / self.n_iter)
+    else:
+      self.a = 2 - (curr_iter ** 2) * (2 / (self.n_iter**2))
 
   def update_variables(self):
     self.r1 = np.random.uniform(size=self.dim)

@@ -16,7 +16,7 @@ def create_dir(path):
 
 def main():
 
-  steps_init = [0.1, 0.01, 0.001]
+  steps_init = [0.1]#, 0.01, 0.001]
   
   for step in steps_init:
     v = 0.01
@@ -34,10 +34,11 @@ def main():
     num_exec = 30
     pack_size = 30
     num_iterations = 500
-    dimension = 15
+    dimension = 30
     min_ai = 1
     max_evaluations = (pack_size * 2 * num_iterations) + pack_size
-    
+    enhanced = True
+
     unimodal_funcs = [SphereFunction, RotatedHyperEllipsoidFunction, RosenbrockFunction, DixonPriceFunction, QuarticNoiseFunction]
     multimodal_funcs =  [GeneralizedShwefelFunction, RastriginFunction, AckleyFunction, GriewankFunction, LeviFunction]
     regular_functions = unimodal_funcs + multimodal_funcs
@@ -46,7 +47,10 @@ def main():
     #regular_functions = [SphereFunction]
     cec_functions = []
 
-    name_file = f'VGWO_dim_{dimension}_agents_{pack_size}_iter_{num_iterations * 2}_eval_{max_evaluations}_step_{str(step_volitive_init).replace(".", "_")}'
+    if enhanced:
+      name_file = f'VGWO_dim_{dimension}_agents_{pack_size}_iter_{num_iterations * 2}_eval_{max_evaluations}_step_{str(step_volitive_init).replace(".", "_")}'
+    else:
+      name_file = f'VGWO2_dim_{dimension}_agents_{pack_size}_iter_{num_iterations * 2}_eval_{max_evaluations}_step_{str(step_volitive_init).replace(".", "_")}'
 
     create_dir(result_path)
     f_handle_csv = open(result_path + f"/{step_volitive_init}-vol.csv", 'w+')
@@ -71,7 +75,7 @@ def main():
         fit_convergence, bests_eval = run_experiments(num_iterations, max_evaluations, pack_size, func,
                                                 search_space_initializer,
                                                 step_volitive_init,
-                                                step_volitive_final, min_ai, swarm_view)
+                                                step_volitive_final, min_ai, enhanced, swarm_view)
         end = time.time()
         row_csv = [step_volitive_init, func.function_name, (end - start)] + [b for b in fit_convergence[:num_iterations]]
         writer_csv.writerow(row_csv)
@@ -97,13 +101,13 @@ def main():
 
 def run_experiments(n_iter, max_evaluations, pack_size, objective_function,
                     search_space_initializer, step_volitive_init,
-                    step_individual_final, min_ai, swarm_view):
+                    step_individual_final, min_ai, enhanced, swarm_view):
 
   opt1 = VolitivePack(objective_function=objective_function,
                       space_initializer=search_space_initializer,
                       n_iter=n_iter, max_evaluations = max_evaluations, pack_size=pack_size,
                       vol_final=step_individual_final, vol_init=step_volitive_init,
-                      min_ai=min_ai)
+                      min_ai=min_ai, enhanced=enhanced)
   opt1.optimize(swarm_view)
   
   return opt1.optimum_fitness_tracking_iter, opt1.optimum_fitness_tracking_eval

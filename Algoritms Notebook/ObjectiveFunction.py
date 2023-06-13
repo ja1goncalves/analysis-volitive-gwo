@@ -228,7 +228,7 @@ class GriewankFunction(ObjectiveFunction): # multimodal function F11
 
 class LeviFunction(ObjectiveFunction): # multimodal function F12
   def __init__(self, dim):
-    super(LeviFunction, self).__init__('Levi', dim, -10, 10)
+    super(LeviFunction, self).__init__('Levy', dim, -10, 10)
 
   @save_best_ever_eval
   def evaluate(self, x):

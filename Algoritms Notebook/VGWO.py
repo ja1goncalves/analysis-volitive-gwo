@@ -10,7 +10,7 @@ plt.rcParams["figure.figsize"] = (13, 8)
 
 class VolitivePack(object):
     def __init__(self, objective_function, space_initializer, n_iter, max_evaluations, pack_size,
-                 vol_init=0.01, vol_final=0.001, min_ai=0.4, analytic_in=False):
+                 vol_init=0.01, vol_final=0.001, min_ai=0.4, analytic_in=False, enhanced = True):
         self.objective_function = objective_function  # função de avalição de custo
         self.space_initializer = space_initializer  # posições iniciais dos peixes
 
@@ -40,7 +40,7 @@ class VolitivePack(object):
         self.delta = None
         self.best_fit = float('inf')
         self.worse_fit = float('-inf')
-
+        self.enhanced = enhanced 
         self.analytic_in = analytic_in
         self.i_net = np.zeros((n_iter, pack_size, pack_size))
 
@@ -90,7 +90,11 @@ class VolitivePack(object):
 
     def update_steps(self, curr_iter):
         #self.a = 2 - curr_iter * (2 / self.n_iter)
-        self.a = 2 - (curr_iter**2) * (2 / (self.n_iter**2))
+
+        if self.enhanced:
+            self.a = 2 - (curr_iter**2) * (2 / (self.n_iter**2))
+        else:
+            self.a = 2 - curr_iter * (2 / self.n_iter)
         # Modified Grey Wolf Optimizer for Global Engineering Optimization
         # - curr_iter * float(self.step_vol_init - self.step_vol_final) / self.n_iter
         # self.curr_step_vol = self.step_vol_init
@@ -235,7 +239,7 @@ class VolitivePack(object):
 
             jump = 1
             numerator = (wolf.pos - barycenter)
-            # np.linalg.norm(wolf.pos - barycenter) # euclidean distance
+            #denominator = np.linalg.norm(wolf.pos - barycenter) # euclidean distance
             denominator = 1
 
             volitive_move = jump * self.curr_step_vol * \

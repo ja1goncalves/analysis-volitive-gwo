@@ -21,6 +21,7 @@ def main():
   num_exec = 30
   pack_size = 30
   num_iterations = 1000
+  enhanced = False
 
   unimodal_funcs = [SphereFunction, RotatedHyperEllipsoidFunction, RosenbrockFunction, DixonPriceFunction, QuarticNoiseFunction]
   multimodal_funcs =  [GeneralizedShwefelFunction, RastriginFunction, AckleyFunction, GriewankFunction, LeviFunction]
@@ -44,7 +45,7 @@ def main():
     for simulation_id in range(num_exec):
         func = benchmark_func(dimension)
         start = time.time()
-        fit_convergence, bests_eval = run_experiments(num_iterations, max_evaluations, pack_size, func, search_space_initializer)
+        fit_convergence, bests_eval = run_experiments(num_iterations, max_evaluations, pack_size, func, enhanced, search_space_initializer)
         end = time.time()
         row_csv = ['GWO', func.function_name, (end - start)] + [b for b in fit_convergence[:num_iterations]]
         writer_csv.writerow(row_csv)
@@ -64,9 +65,9 @@ def main():
 
   f_handle_csv.close()
 
-def run_experiments(n_iter, max_evaluations,  pack_size, objective_function, search_space_initializer):
+def run_experiments(n_iter, max_evaluations,  pack_size, objective_function, enhanced, search_space_initializer):
   opt1 = Pack(objective_function=objective_function, space_initializer=search_space_initializer,
-              n_iter=n_iter, max_evaluations= max_evaluations, pack_size=pack_size)
+              n_iter=n_iter, max_evaluations= max_evaluations, enhanced=enhanced, pack_size=pack_size)
   opt1.optimize()
   return opt1.optimum_fitness_tracking_iter, opt1.optimum_fitness_tracking_eval
 
